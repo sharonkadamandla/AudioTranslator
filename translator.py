@@ -1,8 +1,8 @@
 
 from dotenv import load_dotenv
-load_dotenv()
-
 from datetime import datetime
+
+load_dotenv()
 import os
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -27,7 +27,12 @@ def transcribe_file_and_dub(audio_file_path: str):
     text_block = translate(text_block, language="Telugu")
     
     # Change the audio name and location based on how you want it to be saved
-    output_path = "/Users/sharon/Desktop/AudioTranslator/transalted_recordings/telugu_audio.mp3"
+    os.makedirs("translated_audios", exist_ok=True)
+
+    # Create a unique filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = f"translated_audios/translated_{timestamp}.mp3"
+    # output_path = "/Users/sharon/Desktop/AudioTranslator/transalted_audios/telugu_audio.mp3"
     text_to_speech(text_block, output_path)
     return output_path
 
@@ -104,6 +109,7 @@ def text_to_speech(text, output_file):
     with open(output_file, "wb") as out:
         out.write(response.audio_content)
         print(f'✅ Audio content written to file "{output_file}"')
+        return output_file
 
 
 
@@ -119,11 +125,6 @@ def main(audio_file_path: str):
     """Takes an audio file path and returns translated audio path."""
     output_file = transcribe_file_and_dub(audio_file_path)
     
-    os.makedirs("transalted_audios", exist_ok=True)
-
-    # Create a unique filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f"outputs/translated_{timestamp}.mp3"
     return output_file
 
 if __name__ == "__main__":
