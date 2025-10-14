@@ -1,6 +1,6 @@
 # Audio Translator
 Being a divoted christian and only software daughter in the family, I take responsibility to bring the best sermons from all over the world to my mom.   
-I am making a AI Website that will traslate audio sermons to Telugu but eventually making it translate into any language. Stay tunes and check the latest version. 
+I am making a AI Website that will traslate audio sermons to Telugu but eventually making it translate into any language. Stay tuned and check the latest version. 
 
 ### When Cloning : create .env file and add openai & google could api key. Then execute app_gradio.py file to launch the webpage. 
 
