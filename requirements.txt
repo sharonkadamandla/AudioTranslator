@@ -1,0 +1,7 @@
+gradio
+openai
+pydub
+langchain
+langchain-openai
+google-cloud-texttospeech
+python-dotenv
