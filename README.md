@@ -1,3 +1,12 @@
+---
+license: mit
+title: AudioTranslator
+sdk: gradio
+emoji: 🌍
+colorFrom: blue
+short_description: This model translates english audio to telugu audio
+---
+
 title: AudioTranslator
 emoji: 🦀
 colorFrom: red
