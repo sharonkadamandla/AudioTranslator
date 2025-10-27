@@ -1,0 +1,14 @@
+# Environment variables
+.env
+
+# Cache files
+__pycache__/
+*.pyc
+.gradio/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Optional: system files
+.DS_Store
+
