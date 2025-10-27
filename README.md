@@ -1,13 +1,12 @@
-title: AudioTranslator
-emoji: 🦀
-colorFrom: red
-colorTo: blue
-sdk: gradio
-sdk_version: 5.49.1
-app_file: app.py
-pinned: false
+---
 license: mit
+title: AudioTranslator
+sdk: gradio
+emoji: 🌍
+colorFrom: blue
 short_description: This model translates english audio to telugu audio
+---
+
 
 # Audio Translator
 Being a divoted christian and only software daughter in the family, I take responsibility to bring the best sermons from all over the world to my mom.   
@@ -57,4 +56,4 @@ Audio produced through code is much lower quality than the app. Work on improvin
 Add front end.
 
 
-
+>>>>>>> 62d0c6a2eda89c2a67e05c56251591d0c51c8b05
