@@ -1,5 +1,4 @@
 ---
-license: mit
 title: AudioTranslator
 sdk: gradio
 emoji: 🌍
