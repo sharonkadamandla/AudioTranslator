@@ -1,3 +1,12 @@
+---
+title: AudioTranslator
+sdk: gradio
+emoji: 🌍
+colorFrom: blue
+short_description: This model translates english audio to telugu audio
+---
+
+
 # Audio Translator
 Being a divoted christian and only software daughter in the family, I take responsibility to bring the best sermons from all over the world to my mom.   
 I am making a AI Website that will traslate audio sermons to Telugu but eventually making it translate into any language. Stay tuned and check the latest version. 
