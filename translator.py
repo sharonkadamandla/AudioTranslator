@@ -1,43 +1,67 @@
-
-from dotenv import load_dotenv
+rom dotenv import load_dotenv
 from datetime import datetime
-
-load_dotenv()
+from pydub import AudioSegment  
 import os
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# GOOGLE_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 from openai import OpenAI
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-client = OpenAI(api_key = OPENAI_API_KEY)
+
+# Split audio into chunks if larger than 25MB
+def split_audio(file_path, chunk_length_ms=600000):  # 10 min = 600000 ms
+    audio = AudioSegment.from_file(file_path)
+    chunks = []
+    for i in range(0, len(audio), chunk_length_ms):
+        chunk = audio[i:i+chunk_length_ms]
+        chunk_name = f"chunk_{i//chunk_length_ms}.mp3"
+        chunk.export(chunk_name, format="mp3")
+        chunks.append(chunk_name)
+    return chunks
+
 
 def transcribe_file_and_dub(audio_file_path: str):
-    with open(audio_file_path, "rb") as audio_file:
-        response = client.audio.transcriptions.create(
-        model="whisper-1",
-        file=audio_file
-    )
-    
-    text_block = response.text
-    
-    print(text_block)
+    # Check file size
+    file_size_mb = os.path.getsize(audio_file_path) / (1024 * 1024)
 
-    text_block = translate(text_block, language="Telugu")
-    
-    # Change the audio name and location based on how you want it to be saved
+    if file_size_mb > 25:
+        print(f"⚠️ File is {file_size_mb:.2f} MB, splitting into chunks...")
+        audio_files = split_audio(audio_file_path)
+    else:
+        audio_files = [audio_file_path]
+
+    full_transcript = []
+
+    # Process each chunk
+    for idx, chunk_path in enumerate(audio_files):
+        with open(chunk_path, "rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+        text_block = response.text
+        print(f"📝 Transcript from chunk {idx}: {text_block[:50]}...")
+        full_transcript.append(text_block)
+
+    # Combine transcripts
+    combined_text = " ".join(full_transcript)
+
+    # Translate whole text at once
+    translated_text = translate(combined_text, language="Telugu")
+
+    # Save translated audio
     os.makedirs("translated_audios", exist_ok=True)
-
-    # Create a unique filename with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = f"translated_audios/translated_{timestamp}.mp3"
-    # output_path = "/Users/sharon/Desktop/AudioTranslator/transalted_audios/telugu_audio.mp3"
-    text_to_speech(text_block, output_path)
+
+    text_to_speech(translated_text, output_path)
     return output_path
 
 
-
+# TRANSLATION
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -63,73 +87,56 @@ translation_chain = (
 def translate(sentence, language):
     data_input = {"language": language, "sentence": sentence}
     translation = translation_chain.invoke(data_input)
-    print(translation)
+    print("🌐 Translated:", translation[:100], "...")
     return translation
 
 
-
-# %% [markdown]
-# ---
-# ## Google Cloud For Text to Speech
-# 
-# Languages and Voices list -> https://cloud.google.com/text-to-speech/docs/list-voices-and-types
-
-# %%
+# GOOGLE TTS 
 from google.cloud import texttospeech
+from google.oauth2 import service_account
+import json
 
-# Initialize the client once (outside the function, so it doesn't re-initialize every call)
-tts_client = texttospeech.TextToSpeechClient()
+# added to fix credentials not found error
+creds_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+if not creds_json:
+    raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
+
+creds_dict = json.loads(creds_json)
+credentials = service_account.Credentials.from_service_account_info(creds_dict)
+
+
+tts_client = texttospeech.TextToSpeechClient(credentials=credentials)
+#
 
 def text_to_speech(text, output_file):
-    
-    # Prepare the input text
     synthesis_input = texttospeech.SynthesisInput(text=text)
-
-    # Choose the voice
     voice = texttospeech.VoiceSelectionParams(
         language_code="te-IN",
         name="te-IN-Chirp3-HD-Charon"
     )
-
-    # Configure audio output
     audio_config = texttospeech.AudioConfig(
         audio_encoding=texttospeech.AudioEncoding.MP3,
         effects_profile_id=["small-bluetooth-speaker-class-device"],
         speaking_rate=1.0,
     )
-
-    # Call the API
     response = tts_client.synthesize_speech(
         input=synthesis_input,
         voice=voice,
         audio_config=audio_config
     )
-
-    # Save to file
     with open(output_file, "wb") as out:
         out.write(response.audio_content)
         print(f'✅ Audio content written to file "{output_file}"')
         return output_file
 
 
-
-
-# %% [markdown]
-# ---
-# ## Main Script
-# 
-
-# %%
-#audio_path = "/Users/sharon/Downloads/acts/acts17(part2).mp3"  # or .wav/.m4a, etc.
+# MAIN 
 def main(audio_file_path: str):
-    """Takes an audio file path and returns translated audio path."""
     output_file = transcribe_file_and_dub(audio_file_path)
-    
     return output_file
 
 if __name__ == "__main__":
-    # Keep this for running locally
     test_file = "/Users/sharon/Desktop/audio.m4a"
     output = main(test_file)
     print(f"Translated audio saved at: {output}")
-
